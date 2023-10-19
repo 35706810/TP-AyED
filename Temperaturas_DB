@@ -1,0 +1,197 @@
+class NodoAVL:
+    def __init__(self, fecha, temperatura):
+        self.fecha = fecha
+        self.temperatura = temperatura
+        self.izquierda = None
+        self.derecha = None
+        self.altura = 1
+
+class Temperaturas_DB:
+    def __init__(self):
+        self.raiz = None
+        self.muestras = 0
+
+    def altura(self, nodo):
+        if not nodo:
+            return 0
+        return nodo.altura
+
+    def actualizar_altura(self, nodo):
+        nodo.altura = 1 + max(self.altura(nodo.izquierda), self.altura(nodo.derecha))
+
+    def balance(self, nodo):
+        if not nodo:
+            return 0
+        return self.altura(nodo.izquierda) - self.altura(nodo.derecha)
+
+    def rotar_izquierda(self, z):
+        y = z.derecha
+        T2 = y.izquierda
+
+        y.izquierda = z
+        z.derecha = T2
+
+        self.actualizar_altura(z)
+        self.actualizar_altura(y)
+
+        return y
+
+    def rotar_derecha(self, y):
+        x = y.izquierda
+        T2 = x.derecha
+
+        x.derecha = y
+        y.izquierda = T2
+
+        self.actualizar_altura(y)
+        self.actualizar_altura(x)
+
+        return x
+
+    def insertar(self, nodo, fecha, temperatura):
+        if not nodo:
+            return NodoAVL(fecha, temperatura)
+        if fecha < nodo.fecha:
+            nodo.izquierda = self.insertar(nodo.izquierda, fecha, temperatura)
+        elif fecha > nodo.fecha:
+            nodo.derecha = self.insertar(nodo.derecha, fecha, temperatura)
+        else:
+            return nodo
+
+        self.actualizar_altura(nodo)
+
+        balance = self.balance(nodo)
+
+        # Caso izquierda-izquierda
+        if balance > 1 and fecha < nodo.izquierda.fecha:
+            return self.rotar_derecha(nodo)
+
+        # Caso derecha-derecha
+        if balance < -1 and fecha > nodo.derecha.fecha:
+            return self.rotar_izquierda(nodo)
+
+        # Caso izquierda-derecha
+        if balance > 1 and fecha > nodo.izquierda.fecha:
+            nodo.izquierda = self.rotar_izquierda(nodo.izquierda)
+            return self.rotar_derecha(nodo)
+
+        # Caso derecha-izquierda
+        if balance < -1 and fecha < nodo.derecha.fecha:
+            nodo.derecha = self.rotar_derecha(nodo.derecha)
+            return self.rotar_izquierda(nodo)
+
+        return nodo
+
+    def guardar_temperatura(self, fecha, temperatura):
+        self.raiz = self.insertar(self.raiz, fecha, temperatura)
+        self.muestras += 1
+
+    def devolver_temperatura(self, fecha):
+        return self._buscar_temperatura(self.raiz, fecha)
+
+    def _buscar_temperatura(self, nodo, fecha):
+        if not nodo:
+            return None
+        if fecha < nodo.fecha:
+            return self._buscar_temperatura(nodo.izquierda, fecha)
+        elif fecha > nodo.fecha:
+            return self._buscar_temperatura(nodo.derecha, fecha)
+        else:
+            return nodo.temperatura
+
+    def _buscar_muestras_rango(self, nodo, fecha1, fecha2, resultados):
+        if not nodo:
+            return
+        if fecha1 < nodo.fecha:
+            self._buscar_muestras_rango(nodo.izquierda, fecha1, fecha2, resultados)
+        if fecha1 <= nodo.fecha <= fecha2:
+            resultados.append(f"{nodo.fecha.strftime('%d/%m/%Y')}: {nodo.temperatura} ºC")
+        if fecha2 > nodo.fecha:
+            self._buscar_muestras_rango(nodo.derecha, fecha1, fecha2, resultados)
+
+    def devolver_temperaturas(self, fecha1, fecha2):
+        resultados = []
+        self._buscar_muestras_rango(self.raiz, fecha1, fecha2, resultados)
+        return resultados
+
+    def max_temp_rango(self, fecha1, fecha2):
+        temperaturas = self._buscar_muestras_rango(self.raiz, fecha1, fecha2, [])
+        if temperaturas:
+            return max(float(temp.split(': ')[1][:-3]) for temp in temperaturas)
+        return None
+
+    def min_temp_rango(self, fecha1, fecha2):
+        temperaturas = self._buscar_muestras_rango(self.raiz, fecha1, fecha2, [])
+        if temperaturas:
+            return min(float(temp.split(': ')[1][:-3]) for temp in temperaturas)
+        return None
+
+    def temp_extremos_rango(self, fecha1, fecha2):
+        temperaturas = self._buscar_muestras_rango(self.raiz, fecha1, fecha2, [])
+        if temperaturas:
+            min_temp = min(float(temp.split(': ')[1][:-3]) for temp in temperaturas)
+            max_temp = max(float(temp.split(': ')[1][:-3]) for temp in temperaturas)
+            return min_temp, max_temp
+        return None
+
+    def borrar_temperatura(self, fecha):
+        self.raiz = self._borrar_temperatura(self.raiz, fecha)
+
+    def _encontrar_minimo(self, nodo):
+        while nodo.izquierda:
+            nodo = nodo.izquierda
+        return nodo
+
+    def _borrar_temperatura(self, raiz, fecha):
+        if not raiz:
+            return raiz
+
+        if fecha < raiz.fecha:
+            raiz.izquierda = self._borrar_temperatura(raiz.izquierda, fecha)
+        elif fecha > raiz.fecha:
+            raiz.derecha = self._borrar_temperatura(raiz.derecha, fecha)
+        else:
+            if not raiz.izquierda:
+                temp = raiz.derecha
+                raiz = None
+                return temp
+            elif not raiz.derecha:
+                temp = raiz.izquierda
+                raiz = None
+                return temp
+
+            temp = self._encontrar_minimo(raiz.derecha)
+            raiz.fecha = temp.fecha
+            raiz.temperatura = temp.temperatura
+            raiz.derecha = self._borrar_temperatura(raiz.derecha, temp.fecha)
+
+        if not raiz:
+            return raiz
+
+        raiz.altura = 1 + max(self.altura(raiz.izquierda), self.altura(raiz.derecha))
+
+        balance = self.balance(raiz)
+
+        # Caso izquierda-izquierda
+        if balance > 1 and self.balance(raiz.izquierda) >= 0:
+            return self.rotar_derecha(raiz)
+
+        # Caso derecha-derecha
+        if balance < -1 and self.balance(raiz.derecha) <= 0:
+            return self.rotar_izquierda(raiz)
+
+        # Caso izquierda-derecha
+        if balance > 1 and self.balance(raiz.izquierda) < 0:
+            raiz.izquierda = self.rotar_izquierda(raiz.izquierda)
+            return self.rotar_derecha(raiz)
+
+        # Caso derecha-izquierda
+        if balance < -1 and self.balance(raiz.derecha) > 0:
+            raiz.derecha = self.rotar_derecha(raiz.derecha)
+            return self.rotar_izquierda(raiz)
+
+        return raiz
+
+    def cantidad_muestras(self):
+        return self.muestras
+
