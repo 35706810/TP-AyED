@@ -96,17 +96,22 @@ class Temperaturas_DB:
     
     def guardar_temperatura(self, fecha, temperatura):
         """ Método para guardar una nueva temperatura en la base de datos"""
-        fecha = datetime.strptime(fecha, "%d/%m/%Y")
-        self.raiz = self.insertar(self.raiz, fecha, temperatura)
-        self.muestras += 1
-
+        try:
+            fecha = datetime.strptime(fecha, "%d/%m/%Y")
+            self.raiz = self.insertar(self.raiz, fecha, temperatura)
+            self.muestras += 1
+        except ValueError:
+            raise ValueError("Formato de fecha incorrecto. Utilice el formato dd/mm/yyyy.")
     
     def devolver_temperatura(self, fecha):
         """Método para buscar y devolver la temperatura asociada a una fecha específica"""
-        fecha = datetime.strptime(fecha, "%d/%m/%Y")
-        return self._buscar_temperatura(self.raiz, fecha)
+        try:
+            fecha = datetime.strptime(fecha, "%d/%m/%Y")
+            return self._buscar_temperatura(self.raiz, fecha)
+        except ValueError:
+            raise ValueError("Formato de fecha incorrecto. Utilice el formato dd/mm/yyyy.")
 
-    
+
     def _buscar_temperatura(self, nodo, fecha):
         """Método auxiliar para buscar la temperatura en el árbol AVL"""
         
@@ -185,10 +190,13 @@ class Temperaturas_DB:
     
     def borrar_temperatura(self, fecha):
         """Método para borrar una temperatura en una fecha específica"""
-        fecha = datetime.strptime(fecha, "%d/%m/%Y") 
-        if self._buscar_temperatura(self.raiz, fecha) is not None:
-            self.muestras -= 1
-        self.raiz = self._borrar_temperatura(self.raiz, fecha)
+        try:
+            fecha = datetime.strptime(fecha, "%d/%m/%Y")
+            if self._buscar_temperatura(self.raiz, fecha) is not None:
+                self.muestras -= 1
+            self.raiz = self._borrar_temperatura(self.raiz, fecha)
+        except ValueError:
+            raise ValueError("Formato de fecha incorrecto. Utilice el formato dd/mm/yyyy.")
 
     
     def _encontrar_minimo(self, nodo):
