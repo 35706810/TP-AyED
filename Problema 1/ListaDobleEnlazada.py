@@ -3,6 +3,7 @@ class Nodo_DobleEnlazado:
         self.dato = dato
         self.siguiente = None
         self.anterior = None
+        
     def __str__(self):
         return str(self.dato)
     
@@ -10,7 +11,6 @@ class Nodo_DobleEnlazado:
         return str(self.dato)
     
     def __gt__(self, o):
-        
         return self.dato > o.dato
     
 class ListaDobleEnlazada:
@@ -47,6 +47,7 @@ class ListaDobleEnlazada:
         return self._tamanio
 
     def extraer(self, posicion=None):
+        
         if posicion == None or posicion== -1:
             posicion = self._tamanio-1
         
@@ -78,6 +79,7 @@ class ListaDobleEnlazada:
             return nodo.dato
     
     def insertar(self, dato, posicion):
+        
         if posicion < 0 or posicion >=self._tamanio+1:
             raise IndexError("Esta fuera de rango")
         else:
@@ -104,6 +106,7 @@ class ListaDobleEnlazada:
                 self._tamanio += 1
 
     def agregar_al_inicio(self, dato):
+        
         nuevo_nodo = Nodo_DobleEnlazado(dato)
         if self.esta_vacia():
             self.cabeza = nuevo_nodo
@@ -116,6 +119,7 @@ class ListaDobleEnlazada:
         self._tamanio += 1
 
     def agregar_al_final(self, dato):
+        
         nuevo_nodo = Nodo_DobleEnlazado(dato)
         if self._tamanio == 0:
             self.cabeza = nuevo_nodo
@@ -127,6 +131,7 @@ class ListaDobleEnlazada:
         self._tamanio += 1
 
     def copiar(self):
+        
         nueva_lista = ListaDobleEnlazada()
         nodo_aux = self.cabeza
         while nodo_aux is not None:
@@ -135,6 +140,7 @@ class ListaDobleEnlazada:
         return nueva_lista
 
     def invertir(self):
+        
         actual = self.cabeza
         while actual is not None:
             siguiente_temp = actual.siguiente
@@ -145,9 +151,9 @@ class ListaDobleEnlazada:
             actual = siguiente_temp
 
     def ordenar(self):
+        
         if self._tamanio < 2:
             return
-    
         nodo_actual = self.cabeza.siguiente
         while nodo_actual is not None:
             nodo_orde = self.cabeza
@@ -176,12 +182,14 @@ class ListaDobleEnlazada:
         self.cola = nodo_anterior
 
     def _ordenar_recursivo(self, inicio, fin):
+        
         if inicio is not None and fin is not None and inicio != fin and inicio.anterior != fin:
             pivote = self._particionar(inicio, fin)
             self._ordenar_recursivo(inicio, pivote.anterior)
             self._ordenar_recursivo(pivote.siguiente, fin)
 
     def _particionar(self, inicio, fin):
+        
         pivote = inicio.dato
         izquierda = inicio
         derecha = fin
@@ -199,16 +207,17 @@ class ListaDobleEnlazada:
         return izquierda
 
     def concatenar(self, otra_lista):
-        for dato in otra_lista:
-            self.agregar_al_final(dato)
+        
+        for i in otra_lista:
+            self.agregar_al_final(i)
         return self
 
-    def _concatenar(self, lista):
+    def _concatenar(self, otra_lista):
+        
         nueva_lista = self.copiar()
-        for nodo in lista:
-            nueva_lista.agregar_al_final(nodo)
+        for i in otra_lista:
+            nueva_lista.agregar_al_final(i)
         return nueva_lista
 
-    def __add__(self, lista):
-        return self._concatenar(lista)
-                
+    def __add__(self, otra_lista):
+        return self._concatenar(otra_lista)
