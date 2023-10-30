@@ -3,176 +3,212 @@ class Nodo_DobleEnlazado:
         self.dato = dato
         self.siguiente = None
         self.anterior = None
-
+    def __str__(self):
+        return str(self.dato)
+    
+    def __repr__(self):
+        return str(self.dato)
+    
+    def __gt__(self, o):
+        
+        return self.dato > o.dato
+    
 class ListaDobleEnlazada:
+
     def __init__(self):
         self.cabeza = None
         self.cola = None
-        self.tamanio_lista = 0 
+        self._tamanio = 0
+
+    def __getitem__(self, indice):
+        auxiliar = self.cabeza
+        for _ in range(indice):
+            auxiliar = auxiliar.siguiente
+        return auxiliar.dato
+
+    def __iter__(self):
+        nodo_nuevo = self.cabeza
+        while nodo_nuevo:
+            yield nodo_nuevo.dato
+            nodo_nuevo = nodo_nuevo.siguiente
+            
+    def __str__(self):
+        lista = [nodo for nodo in self]
+        return str(lista)
 
     def esta_vacia(self):
         return self.cabeza is None
-
-    def tamanio(self):
-        return self.tamanio_lista  
     
     def __len__(self):
-        return max(0, self.tamanio_lista)
+        return self._tamanio
+        
+    @property
+    def tamanio(self):
+        return self._tamanio
 
     def extraer(self, posicion=None):
-        if self.esta_vacia():
-            raise IndexError("La lista está vacía, no se puede extraer ningún elemento.")
-
-        if posicion is None:
-            # Si la posición es None, extraemos el último elemento de la lista
-            elemento = self.cola.dato
-            if self.cabeza == self.cola:
+        if posicion == None or posicion== -1:
+            posicion = self._tamanio-1
+        
+        if posicion < 0 or posicion> self._tamanio-1:
+            raise IndexError("Esta fuera de rango")
+        else:
+            nodo = None
+            if self.cabeza.siguiente  is None:
+                nodo = self.cabeza
                 self.cabeza = None
                 self.cola = None
-            else:
-                self.cola = self.cola.anterior
-                self.cola.siguiente = None
-        elif posicion == 0:
-            # Si la posición es 0, extraemos el primer elemento de la lista
-            elemento = self.cabeza.dato
-            if self.cabeza == self.cola:
-                self.cabeza = None
-                self.cola = None
-            else:
+            elif posicion == self._tamanio-1:
+                nodo = self.cola
+                nodo.anterior.siguiente = None
+                self.cola = nodo.anterior
+            elif posicion == 0:
+                nodo = self.cabeza
                 self.cabeza = self.cabeza.siguiente
                 self.cabeza.anterior = None
-        elif 0 < posicion < self.tamanio() - 1:
-            actual = self.cabeza
-            indice = 0
-            while indice < posicion:
-                
-                actual = actual.siguiente
-                indice += 1
-            
-            aux=actual
-            elemento = actual.dato
-            aux.anterior.siguiente = actual.siguiente
-            
-        elif  0 < posicion <= self.tamanio() - 1:
-            aux.siguiente.anterior = actual.anterior
-            
-        else:
-            raise IndexError("La posición no es válida")
-
-            self.tamanio_lista -= 1
-
-            return elemento
-
-
-    def copiar(self):
-        nueva_lista = ListaDobleEnlazada()
-        actual = self.cabeza
-        while actual is not None:
-            nuevo_nodo = Nodo_DobleEnlazado(actual.dato)  
-            nueva_lista.agregar_al_final(nuevo_nodo.dato)  
-
-            actual = actual.siguiente
-
-        return nueva_lista
-
-    def insertar(self, dato, posicion=None):
-        if posicion is None or posicion == self.tamanio():
-            self.agregar_al_final(dato)
-        elif posicion == 0:
-            self.agregar_al_inicio(dato)
-        else:
-            nuevo_nodo = Nodo_DobleEnlazado(dato)
-            actual = self.cabeza
-            indice = 0
-
-            while indice < posicion:
-                actual = actual.siguiente
-                indice += 1
-
-            nuevo_nodo.anterior = actual.anterior
-            nuevo_nodo.siguiente = actual
-
-            if actual.anterior is not None:
-                actual.anterior.siguiente = nuevo_nodo
             else:
-                self.cabeza = nuevo_nodo
-
-            actual.anterior = nuevo_nodo
+                aux = self.cabeza
+                for _ in range(posicion):
+                    aux = aux.siguiente
+                    nodo = aux
+                aux.anterior.siguiente = aux.siguiente
+                aux.siguiente.anterior = aux.anterior
+            
+            self._tamanio -= 1
+            return nodo.dato
+    
+    def insertar(self, dato, posicion):
+        if posicion < 0 or posicion >=self._tamanio+1:
+            raise IndexError("Esta fuera de rango")
+        else:
+            if posicion == 0:
+                self.agregar_al_inicio(dato)
+            elif posicion == self._tamanio:
+                self.agregar_al_final(dato)     
+            elif posicion == self._tamanio:
+                nuevo = Nodo_DobleEnlazado(dato)
+                self.cola.anterior.siguiente = nuevo
+                nuevo.anterior = self.cola.anterior
+                nuevo.siguiente = self.cola
+                self.cola.anterior = nuevo
+                self._tamanio += 1
+            else: 
+                nuevo = Nodo_DobleEnlazado(dato)
+                aux = self.cabeza
+                for _ in range(posicion):
+                    aux = aux.siguiente
+                aux.anterior.siguiente = nuevo    
+                nuevo.anterior = aux.anterior
+                nuevo.siguiente = aux
+                aux.anterior = nuevo
+                self._tamanio += 1
 
     def agregar_al_inicio(self, dato):
         nuevo_nodo = Nodo_DobleEnlazado(dato)
         if self.esta_vacia():
-            nuevo_nodo.anterior = None
             self.cabeza = nuevo_nodo
             self.cola = nuevo_nodo
         else:
             nuevo_nodo.siguiente = self.cabeza
             self.cabeza.anterior = nuevo_nodo
             self.cabeza = nuevo_nodo
-            self.cabeza.anterior = None
-        if self.cola is not None:
-            self.cola.siguiente = None
+            
+        self._tamanio += 1
 
     def agregar_al_final(self, dato):
         nuevo_nodo = Nodo_DobleEnlazado(dato)
-        if self.esta_vacia():
+        if self._tamanio == 0:
             self.cabeza = nuevo_nodo
             self.cola = nuevo_nodo
         else:
-            nuevo_nodo.anterior = self.cola
-            nuevo_nodo.siguiente = None
             self.cola.siguiente = nuevo_nodo
+            nuevo_nodo.anterior = self.cola
             self.cola = nuevo_nodo
+        self._tamanio += 1
 
-        if self.cabeza is not None:
-            self.cabeza.anterior = None
-        
-        self.tamanio_lista += 1 
+    def copiar(self):
+        nueva_lista = ListaDobleEnlazada()
+        nodo_aux = self.cabeza
+        while nodo_aux is not None:
+            nueva_lista.agregar_al_final(nodo_aux.dato)
+            nodo_aux = nodo_aux.siguiente
+        return nueva_lista
 
-            
     def invertir(self):
         actual = self.cabeza
         while actual is not None:
-            actual.siguiente, actual.anterior = actual.anterior, actual.siguiente
-            actual = actual.anterior
+            siguiente_temp = actual.siguiente
+            actual.siguiente = actual.anterior
+            actual.anterior = siguiente_temp
+            if siguiente_temp is None:
+                self.cabeza, self.cola = self.cola, self.cabeza
+            actual = siguiente_temp
 
     def ordenar(self):
-        if self.esta_vacia():
+        if self._tamanio < 2:
             return
+    
+        nodo_actual = self.cabeza.siguiente
+        while nodo_actual is not None:
+            nodo_orde = self.cabeza
+            while nodo_orde is not nodo_actual and nodo_actual > nodo_orde:
+                nodo_orde = nodo_orde.siguiente
+    
+            if nodo_orde is not nodo_actual:
+                nodo_anterior = nodo_actual.anterior
 
-        actual = self.cabeza
-        while actual is not None:
-            siguiente = actual.siguiente
-            while siguiente is not None:
-                if actual.dato > siguiente.dato:
-                    actual.dato, siguiente.dato = siguiente.dato, actual.dato
-                siguiente = siguiente.siguiente
-            actual = actual.siguiente
+                nodo_anterior.siguiente = nodo_actual.siguiente
+                if nodo_actual.siguiente is not None:
+                    nodo_actual.siguiente.anterior = nodo_anterior
+    
+                nodo_actual.anterior = nodo_orde.anterior
+                nodo_actual.siguiente = nodo_orde
+                nodo_orde.anterior = nodo_actual
+                if nodo_actual.anterior is not None:
+                    nodo_actual.anterior.siguiente = nodo_actual
+                else:
+                    self.cabeza = nodo_actual
 
-    def __iter__(self):
-        actual = self.cabeza
-        while actual is not None:
-            yield actual.dato
-            actual = actual.siguiente
+                nodo_actual = nodo_anterior.siguiente
+            else:
+                nodo_actual = nodo_actual.siguiente
+
+        self.cola = nodo_anterior
+
+    def _ordenar_recursivo(self, inicio, fin):
+        if inicio is not None and fin is not None and inicio != fin and inicio.anterior != fin:
+            pivote = self._particionar(inicio, fin)
+            self._ordenar_recursivo(inicio, pivote.anterior)
+            self._ordenar_recursivo(pivote.siguiente, fin)
+
+    def _particionar(self, inicio, fin):
+        pivote = inicio.dato
+        izquierda = inicio
+        derecha = fin
+
+        while izquierda != derecha:
+            while izquierda != derecha and derecha.dato >= pivote:
+                derecha = derecha.anterior
+            while izquierda != derecha and izquierda.dato <= pivote:
+                izquierda = izquierda.siguiente
+            if izquierda != derecha:
+                izquierda.dato, derecha.dato = derecha.dato, izquierda.dato
+
+        izquierda.dato, inicio.dato = inicio.dato, izquierda.dato
+
+        return izquierda
 
     def concatenar(self, otra_lista):
-        if self.esta_vacia():
-            self.cabeza = otra_lista.cabeza
-            self.cola = otra_lista.cola
-            if self.cabeza is not None:
-                self.cabeza.anterior = None
-            if self.cola is not None:
-                self.cola.siguiente = None
-        elif not otra_lista.esta_vacia():
-            self.cola.siguiente = otra_lista.cabeza
-            otra_lista.cabeza.anterior = self.cola
-            self.cola = otra_lista.cola
-            self.cola.siguiente = None
+        for dato in otra_lista:
+            self.agregar_al_final(dato)
+        return self
 
-        self.tamanio_lista += len(otra_lista)  
-
-    def __add__(self, otra_lista):
-        nueva_lista = ListaDobleEnlazada()
-        nueva_lista.concatenar(self)
-        nueva_lista.concatenar(otra_lista)
+    def _concatenar(self, lista):
+        nueva_lista = self.copiar()
+        for nodo in lista:
+            nueva_lista.agregar_al_final(nodo)
         return nueva_lista
+
+    def __add__(self, lista):
+        return self._concatenar(lista)
+                
