@@ -1,7 +1,7 @@
 import random
 import timeit
 import matplotlib.pyplot as plt
-from modulos_ListaDobleEnlazada import ListaDobleEnlazada
+from ListaDobleEnlazada import ListaDobleEnlazada
 
 """La función genera y devuelve una lista de tamaño n con valores aleatorios entre 1 y 1000."""
 def generar_lista_aleatoria(n):
