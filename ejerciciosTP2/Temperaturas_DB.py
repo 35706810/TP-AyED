@@ -1,41 +1,30 @@
 from datetime import datetime
 
 class NodoAVL:
-    """ clase NodoAVL representa los nodos del árbol AVL"""
     def __init__(self, fecha, temperatura):
         self.fecha = fecha
         self.temperatura = temperatura
         self.izquierda = None
         self.derecha = None
-        self.altura = 1  # Altura del nodo en el árbol AVL (sin hijos)
+        self.altura = 1
 
-
-class Temperaturas_DB:
-    """clase Temperaturas_DB que utiliza un árbol AVL para almacenar y manipular las temperaturas"""
+class ArbolAVL:
     def __init__(self):
-        self.raiz = None  # Inicializo la raíz del árbol como nula
-        self.muestras = 0  # Inicializo el contador de muestras en 0
+        self.raiz = None
 
-    
     def altura(self, nodo):
-        """Método para obtener la altura de un nodo"""
         if not nodo:
             return 0
         return nodo.altura
 
-
     def actualizar_altura(self, nodo):
-        """Método para actualizar la altura de un nodo"""
         nodo.altura = 1 + max(self.altura(nodo.izquierda), self.altura(nodo.derecha))
 
-    
     def balance(self, nodo):
-        """Método para calcular el balance de un nodo (diferencia de alturas entre subárboles izquierdo y derecho)"""
         if not nodo:
             return 0
         return self.altura(nodo.izquierda) - self.altura(nodo.derecha)
 
-    # Métodos para realizar rotaciones izquierda y derecha para balancear el árbol AVL
     def rotar_izquierda(self, x):
         y = x.derecha
         T2 = y.izquierda
@@ -60,9 +49,7 @@ class Temperaturas_DB:
 
         return x
 
-    
     def insertar(self, nodo, fecha, temperatura):
-        """Método para insertar un nodo en el árbol AVL y balancearlo"""
         if not nodo:
             return NodoAVL(fecha, temperatura)
         if fecha < nodo.fecha:
@@ -76,11 +63,10 @@ class Temperaturas_DB:
 
         balance = self.balance(nodo)
 
-        # rotaciones para balancear el árbol
-        if balance > 1 :
+        if balance > 1:
             if fecha < nodo.izquierda.fecha:
                 return self.rotar_derecha(nodo)
-            else: 
+            else:
                 nodo.izquierda = self.rotar_izquierda(nodo.izquierda)
                 return self.rotar_derecha(nodo)
 
@@ -88,17 +74,21 @@ class Temperaturas_DB:
             if fecha > nodo.derecha.fecha:
                 return self.rotar_izquierda(nodo)
             else:
-                nodo.derecha= self.rotar_derecha(nodo.derecha)
+                nodo.derecha = self.rotar_derecha(nodo.derecha)
                 return self.rotar_izquierda(nodo)
 
         return nodo
-
     
+class Temperaturas_DB:
+    def __init__(self):
+        self.arbol = ArbolAVL()
+        self.muestras = 0  # Inicializo el contador de muestras en 0
+   
     def guardar_temperatura(self, fecha, temperatura):
         """ Método para guardar una nueva temperatura en la base de datos"""
         try:
             fecha = datetime.strptime(fecha, "%d/%m/%Y")
-            self.raiz = self.insertar(self.raiz, fecha, temperatura)
+            self.arbol.raiz = self.arbol.insertar(self.arbol.raiz, fecha, temperatura)
             self.muestras += 1
         except ValueError:
             raise ValueError("Formato de fecha incorrecto. Utilice el formato dd/mm/yyyy.")
@@ -107,7 +97,7 @@ class Temperaturas_DB:
         """Método para buscar y devolver la temperatura asociada a una fecha específica"""
         try:
             fecha = datetime.strptime(fecha, "%d/%m/%Y")
-            return self._buscar_temperatura(self.raiz, fecha)
+            return self._buscar_temperatura(self.arbol.raiz, fecha)
         except ValueError:
             raise ValueError("Formato de fecha incorrecto. Utilice el formato dd/mm/yyyy.")
 
@@ -145,7 +135,7 @@ class Temperaturas_DB:
         resultados = []
         fecha1 = datetime.strptime(fecha1, "%d/%m/%Y")
         fecha2 = datetime.strptime(fecha2, "%d/%m/%Y")
-        self._buscar_muestras_rango(self.raiz, fecha1, fecha2, resultados)
+        self._buscar_muestras_rango(self.arbol.raiz, fecha1, fecha2, resultados)
         return resultados
 
     
@@ -154,7 +144,7 @@ class Temperaturas_DB:
         temperaturas=[] 
         fecha1 = datetime.strptime(fecha1, "%d/%m/%Y")
         fecha2 = datetime.strptime(fecha2, "%d/%m/%Y")
-        self._buscar_muestras_rango(self.raiz, fecha1, fecha2, temperaturas)
+        self._buscar_muestras_rango(self.arbol.raiz, fecha1, fecha2, temperaturas)
         
         if temperaturas:
             return max(float(temp.split(': ')[1][:-3]) for temp in temperaturas)
@@ -166,7 +156,7 @@ class Temperaturas_DB:
         temperaturas =[]
         fecha1 = datetime.strptime(fecha1, "%d/%m/%Y")
         fecha2 = datetime.strptime(fecha2, "%d/%m/%Y")
-        self._buscar_muestras_rango(self.raiz, fecha1, fecha2, temperaturas)
+        self._buscar_muestras_rango(self.arbol.raiz, fecha1, fecha2, temperaturas)
         if temperaturas:
             return min(float(temp.split(': ')[1][:-3]) for temp in temperaturas)
         return None
@@ -177,7 +167,7 @@ class Temperaturas_DB:
         temperaturas=[] 
         fecha1 = datetime.strptime(fecha1, "%d/%m/%Y")
         fecha2 = datetime.strptime(fecha2, "%d/%m/%Y")
-        self._buscar_muestras_rango(self.raiz, fecha1, fecha2,temperaturas )
+        self._buscar_muestras_rango(self.arbol.raiz, fecha1, fecha2,temperaturas )
         
         if temperaturas:
             temperaturas = [float(temp.split(': ')[1][:-2]) for temp in temperaturas]
@@ -192,9 +182,9 @@ class Temperaturas_DB:
         """Método para borrar una temperatura en una fecha específica"""
         try:
             fecha = datetime.strptime(fecha, "%d/%m/%Y")
-            if self._buscar_temperatura(self.raiz, fecha) is not None:
+            if self._buscar_temperatura(self.arbol.raiz, fecha) is not None:
                 self.muestras -= 1
-            self.raiz = self._borrar_temperatura(self.raiz, fecha)
+            self.raiz = self._borrar_temperatura(self.arbol.raiz, fecha)
         except ValueError:
             raise ValueError("Formato de fecha incorrecto. Utilice el formato dd/mm/yyyy.")
 
@@ -225,7 +215,7 @@ class Temperaturas_DB:
                 raiz = None
                 return temp
 
-            temp = self._encontrar_minimo(raiz.derecha)
+            temp = self.arbol._encontrar_minimo(raiz.derecha)
             raiz.fecha = temp.fecha
             raiz.temperatura = temp.temperatura
             raiz.derecha = self._borrar_temperatura(raiz.derecha, temp.fecha)
@@ -233,24 +223,24 @@ class Temperaturas_DB:
         if not raiz:
             return raiz
 
-        raiz.altura = 1 + max(self.altura(raiz.izquierda), self.altura(raiz.derecha))
+        raiz.altura = 1 + max(self.arbol.altura(raiz.izquierda), self.arbol.altura(raiz.derecha))
 
-        balance = self.balance(raiz)
+        balance = self.arbol.balance(raiz)
 
         # rotaciones para balancear el árbol después de borrar un nodo
-        if balance > 1 and self.balance(raiz.izquierda) >= 0:
-            return self.rotar_derecha(raiz)
+        if balance > 1 and self.arbol.balance(raiz.izquierda) >= 0:
+            return self.arbol.rotar_derecha(raiz)
 
-        if balance < -1 and self.balance(raiz.derecha) <= 0:
-            return self.rotar_izquierda(raiz)
+        if balance < -1 and self.arbol.balance(raiz.derecha) <= 0:
+            return self.arbol.rotar_izquierda(raiz)
 
-        if balance > 1 and self.balance(raiz.izquierda) < 0:
-            raiz.izquierda = self.rotar_izquierda(raiz.izquierda)
-            return self.rotar_derecha(raiz)
+        if balance > 1 and self.arbol.balance(raiz.izquierda) < 0:
+            raiz.izquierda = self.arbol.rotar_izquierda(raiz.izquierda)
+            return self.arbol.rotar_derecha(raiz)
 
-        if balance < -1 and self.balance(raiz.derecha) > 0:
-            raiz.derecha = self.rotar_derecha(raiz.derecha)
-            return self.rotar_izquierda(raiz)
+        if balance < -1 and self.arbol.balance(raiz.derecha) > 0:
+            raiz.derecha = self.arbol.rotar_derecha(raiz.derecha)
+            return self.arbol.rotar_izquierda(raiz)
 
         return raiz
 
