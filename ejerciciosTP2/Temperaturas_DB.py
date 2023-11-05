@@ -1,6 +1,7 @@
 from datetime import datetime
 
 class NodoAVL:
+    """ clase NodoAVL representa los nodos del árbol AVL"""
     def __init__(self, fecha, temperatura):
         self.fecha = fecha
         self.temperatura = temperatura
@@ -9,23 +10,28 @@ class NodoAVL:
         self.altura = 1
 
 class ArbolAVL:
+    """clase árbol AVL para almacenar y manipular las temperaturas"""
     def __init__(self):
         self.raiz = None
 
     def altura(self, nodo):
+        """Método para obtener la altura de un nodo"""
         if not nodo:
             return 0
         return nodo.altura
 
     def actualizar_altura(self, nodo):
+        """Método para actualizar la altura de un nodo"""
         nodo.altura = 1 + max(self.altura(nodo.izquierda), self.altura(nodo.derecha))
 
     def balance(self, nodo):
+        """Método para calcular el balance de un nodo (diferencia de alturas entre subárboles izquierdo y derecho)"""
         if not nodo:
             return 0
         return self.altura(nodo.izquierda) - self.altura(nodo.derecha)
 
     def rotar_izquierda(self, x):
+        # Métodos para realizar rotaciones izquierda y derecha para balancear el árbol AVL
         y = x.derecha
         T2 = y.izquierda
 
@@ -50,6 +56,7 @@ class ArbolAVL:
         return x
 
     def insertar(self, nodo, fecha, temperatura):
+        """Método para insertar un nodo en el árbol AVL y balancearlo"""
         if not nodo:
             return NodoAVL(fecha, temperatura)
         if fecha < nodo.fecha:
@@ -62,14 +69,14 @@ class ArbolAVL:
         self.actualizar_altura(nodo)
 
         balance = self.balance(nodo)
-
+        # rotaciones para balancear el árbol
         if balance > 1:
             if fecha < nodo.izquierda.fecha:
                 return self.rotar_derecha(nodo)
             else:
                 nodo.izquierda = self.rotar_izquierda(nodo.izquierda)
                 return self.rotar_derecha(nodo)
-
+                
         if balance < -1:
             if fecha > nodo.derecha.fecha:
                 return self.rotar_izquierda(nodo)
