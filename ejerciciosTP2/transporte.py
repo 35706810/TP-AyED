@@ -112,7 +112,7 @@ def encontrar_peso_precio_minimo(unGrafo, ciudad_origen):
 
 # Crear el grafo y cargar datos desde el archivo
 grafo = Grafo()
-ruta_del_archivo = os.path.abspath("/home/dany/Escritorio/Nueva carpeta/algoritmos/TP-AyED/ejerciciosTP2/rutas.txt")  # Obtener la ruta absoluta del archivo de entrada
+ruta_del_archivo = os.path.abspath("/home/dany/Escritorio/Nueva carpeta/ejerciciosTP2/rutas.txt")  # Obtener la ruta absoluta del archivo de entrada
 
 try:
     with open(ruta_del_archivo, 'r') as arch_ruta:
@@ -138,7 +138,7 @@ ciudad_origen = "CiudadBs.As."
 if ciudad_origen in grafo.vertices:
     resultados = encontrar_peso_precio_minimo(grafo, ciudad_origen)
 
-    print("Ciudades destino desde CiudadBs.As.:")
+    print("Ciudades destino desde:"+str(ciudad_origen))
     for ciudad_destino, cuello_botella in resultados.items():
         if cuello_botella != float('inf'):  # Verificar si es alcanzable desde CiudadBs.As.
             print(f"Para llegar a {ciudad_destino}:")
